@@ -1,0 +1,12 @@
+# Datos locales y sesiones (se crean al usar la plataforma)
+data.json
+sessions.json
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+
+# Sistema y editor
+.DS_Store
+.vscode/
