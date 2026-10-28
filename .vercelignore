@@ -1,0 +1,4 @@
+data.json
+sessions.json
+*.tmp
+__pycache__/

@@ -221,22 +221,25 @@ const GUIDE = [
     sigue: "Vuelve al inicio o consulta de nuevo cualquier paso." },
 ];
 
-// Los datos se guardan en el servidor (data.json) y sobreviven a recargas y reinicios
+// Los datos se guardan en el navegador (localStorage); la primera vez se cargan los datos de prueba
+const DATA_KEY = "quirova-data";
 let data = { ipq: {} };
 async function load() {
-  try {
-    const r = await fetch("/api/data", { cache: "no-store" });
-    if (r.status === 401) return location.href = "/login";
-    if (r.ok) data = await r.json();
-  } catch {}
+  let stored = null;
+  try { stored = JSON.parse(localStorage.getItem(DATA_KEY)); } catch {}
+  if (stored) data = stored;
+  else {
+    try {
+      const r = await fetch("/api/seed", { cache: "no-store" });
+      if (r.status === 401) return location.href = "/login";
+      if (r.ok) { data = await r.json(); save(); }
+    } catch {}
+  }
   data.ipq ||= {};
 }
-let lastSave = Promise.resolve();
 function save() {
   if (predictions.at) predictions.stale = true;  // los datos cambiaron desde el último cálculo
-  lastSave = fetch("/api/data", { method: "PUT", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-    .then(r => { if (r.status === 401) location.href = "/login"; })
-    .catch(() => {});
+  try { localStorage.setItem(DATA_KEY, JSON.stringify(data)); } catch {}
 }
 
 // Predicciones del modelo local (model.py); se calculan solo al pulsar el botón
@@ -245,8 +248,9 @@ let calculating = false;
 async function runPredictions() {
   calculating = true; render();
   try {
-    await lastSave;  // el servidor predice con los datos guardados
-    const r = await fetch("/api/predicciones", { cache: "no-store" });
+    // El servidor calcula con los datos que le envía el navegador
+    const r = await fetch("/api/predicciones", { method: "POST", cache: "no-store",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
     if (r.status === 401) return location.href = "/login";
     if (r.ok) predictions = { ...(await r.json()), at: new Date().toISOString(), stale: false };
   } catch {}

@@ -21,7 +21,7 @@ Abre http://localhost:8000 e inicia sesión con el usuario de prueba:
 |---|---|
 | `pruebaQuirofano@correo.com` | `quirofano123` |
 
-El usuario está definido directamente en `app.py`. Sirve solo para desarrollo y pruebas.
+El usuario está definido directamente en `server.py`. Sirve solo para desarrollo y pruebas.
 
 ## Secciones
 
@@ -51,23 +51,24 @@ Cada procedimiento se evalúa en 7 componentes: instrumental, insumos, dispositi
 ## Estructura del proyecto
 
 ```
-app.py             Servidor web: login, archivos de la página y API
+app.py             Arranca el servidor local
+server.py          Lógica del servidor: login, páginas y API (local y Vercel)
 model.py           Modelo predictivo local
 seed_data.json     Datos de prueba iniciales
-static/
+templates/
   index.html       La plataforma
   login.html       Pantalla de inicio de sesión
-data.json          Datos guardados (se crea solo)
-sessions.json      Sesiones activas (se crea solo)
+api/index.py       Función de Vercel (usa server.py)
+vercel.json        Configuración de Vercel
 ```
 
 ## Cómo se guardan los datos
 
-- Todo lo que registras se guarda en `data.json` con cada cambio, así que se mantiene al recargar la página y al reiniciar el servidor.
-- Si `data.json` no existe, la plataforma arranca con los datos de prueba de `seed_data.json`.
-- **Para volver a los datos de prueba**, detén el servidor, borra `data.json` y vuelve a iniciarlo.
-- La sesión dura 30 días o hasta que pulses *Cerrar sesión*.
-- Todos los que entren con el usuario de prueba ven y editan los mismos datos.
+- Todo lo que registras se guarda **en el navegador** (localStorage) con cada cambio, así que se mantiene al recargar y al cerrar el navegador.
+- Cada navegador tiene sus propios datos: no se comparten entre personas ni entre computadores.
+- La primera vez que entras, la plataforma carga los datos de prueba de `seed_data.json`.
+- **Para volver a los datos de prueba**, borra los datos del sitio en el navegador. En Chrome: candado de la barra de direcciones → *Configuración del sitio* → *Borrar datos*.
+- La sesión es una cookie firmada que dura 30 días o hasta que pulses *Cerrar sesión*. El servidor no guarda nada en disco.
 
 ## El modelo predictivo
 
@@ -109,6 +110,20 @@ Todas las rutas requieren haber iniciado sesión.
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/api/data` | Devuelve los datos guardados. |
-| `PUT` | `/api/data` | Guarda los datos (JSON). |
-| `GET` | `/api/predicciones` | Ejecuta el modelo sobre todos los procedimientos. |
+| `GET` | `/api/seed` | Devuelve los datos de prueba iniciales. |
+| `POST` | `/api/predicciones` | Recibe los datos del navegador (JSON) y devuelve las predicciones. No guarda nada. |
+
+## Despliegue en Vercel
+
+El proyecto está listo para Vercel: todas las rutas pasan por la función `api/index.py`.
+
+1. Sube el proyecto a GitHub.
+2. En [vercel.com](https://vercel.com), elige *Add New → Project* e importa el repositorio. Deja *Framework Preset* en **Other**.
+3. Antes de desplegar, en *Environment Variables* agrega `QUIROVA_SECRET` con un valor largo y aleatorio. Puedes generarlo con:
+   ```bash
+   python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+   ```
+   Sin esta variable se usa una clave de desarrollo que está en el código, y cualquiera podría falsificar una sesión.
+4. Pulsa *Deploy*. Cada `git push` a `main` vuelve a desplegar automáticamente.
+
+También puedes desplegar desde la terminal con la [CLI de Vercel](https://vercel.com/docs/cli): `npx vercel` y luego `npx vercel --prod`.
