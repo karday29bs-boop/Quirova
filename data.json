@@ -1,0 +1,161 @@
+{
+  "institucion": [
+    {
+      "id": "inst1",
+      "identificador": "NIT 900123456-7",
+      "nombre": "Clínica Demo Quirova"
+    }
+  ],
+  "quirofanos": [
+    {
+      "id": "q1",
+      "nombre": "Q-01",
+      "ubicacion": "Torre A · Piso 3"
+    },
+    {
+      "id": "q2",
+      "nombre": "Q-02",
+      "ubicacion": "Torre A · Piso 3"
+    },
+    {
+      "id": "q3",
+      "nombre": "Q-03 Ambulatorio",
+      "ubicacion": "Torre B · Piso 1"
+    }
+  ],
+  "equipos": [
+    {
+      "id": "e1",
+      "nombre": "Equipo Cirugía General B",
+      "funciones": "Cirujano, ayudante, anestesiólogo, instrumentador"
+    },
+    {
+      "id": "e2",
+      "nombre": "Equipo Ortopedia A",
+      "funciones": "Ortopedista, ayudante, anestesiólogo, instrumentador, circulante"
+    },
+    {
+      "id": "e3",
+      "nombre": "Equipo Ambulatorio C",
+      "funciones": "Cirujano, anestesiólogo, enfermería"
+    }
+  ],
+  "permisos": [
+    {
+      "id": "perm1",
+      "rol": "Administrador",
+      "funciones": "Configuración, reportes y gestión de permisos"
+    },
+    {
+      "id": "perm2",
+      "rol": "Coordinador de quirófanos",
+      "funciones": "Programación de procedimientos y preparación"
+    },
+    {
+      "id": "perm3",
+      "rol": "Enfermería",
+      "funciones": "Verificación IPQ y registros de trazabilidad"
+    }
+  ],
+  "procedimientos": [
+    {
+      "id": "p1",
+      "procedimiento": "Colecistectomía laparoscópica",
+      "paciente": "PAC-0001",
+      "quirofano": "Q-01",
+      "fecha": "2026-11-03",
+      "equipo": "Equipo Cirugía General B"
+    },
+    {
+      "id": "p2",
+      "procedimiento": "Artroscopia de rodilla",
+      "paciente": "PAC-0002",
+      "quirofano": "Q-02",
+      "fecha": "2026-11-04",
+      "equipo": "Equipo Ortopedia A"
+    },
+    {
+      "id": "p3",
+      "procedimiento": "Herniorrafia inguinal",
+      "paciente": "PAC-0003",
+      "quirofano": "Q-03 Ambulatorio",
+      "fecha": "2026-11-05",
+      "equipo": "Equipo Ambulatorio C"
+    }
+  ],
+  "ipq": {
+    "p1": {
+      "answers": {
+        "0": "listo",
+        "1": "listo",
+        "2": "listo",
+        "3": "listo",
+        "4": "listo",
+        "5": "listo",
+        "6": "listo"
+      }
+    },
+    "p2": {
+      "answers": {
+        "0": "listo",
+        "1": "listo",
+        "2": "pendiente",
+        "3": "listo",
+        "4": "listo",
+        "5": "listo",
+        "6": "na"
+      },
+      "score": 83
+    },
+    "p3": {
+      "answers": {
+        "0": "listo",
+        "1": "pendiente",
+        "4": "listo"
+      }
+    }
+  },
+  "preferencias": [
+    {
+      "id": "pref1",
+      "nombre": "Talla de guantes",
+      "descripcion": "Guantes estériles talla 7.5",
+      "activa": true
+    },
+    {
+      "id": "pref2",
+      "nombre": "Música ambiental",
+      "descripcion": "Volumen bajo durante el procedimiento",
+      "activa": true
+    },
+    {
+      "id": "pref3",
+      "nombre": "Posición de monitores",
+      "descripcion": "Monitor principal a la izquierda de la mesa",
+      "activa": false
+    }
+  ],
+  "seguimiento": [
+    {
+      "id": "s1",
+      "modulo": "Esterilización",
+      "procedimiento": "p1",
+      "referencia": "CICLO-2026-1041",
+      "descripcion": "Ciclo de autoclave verificado y aprobado"
+    },
+    {
+      "id": "s2",
+      "modulo": "Instrumental",
+      "procedimiento": "p1",
+      "referencia": "SET-LAP-07",
+      "descripcion": "Set laparoscópico completo y revisado"
+    },
+    {
+      "id": "s3",
+      "modulo": "Mantenimiento biomédico",
+      "procedimiento": "p2",
+      "referencia": "OT-BIO-332",
+      "descripcion": "Torre de artroscopia con mantenimiento al día"
+    }
+  ]
+}

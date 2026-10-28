@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quirova – Iniciar sesión</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5fb;
+    --ink: #1b1740;
+    --muted: #615c84;
+    --line: #e4e1f2;
+    --primary: #4b3fd1;
+    --warm: #f2994a;
+    --header: #1b1740;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; font-family: "Inter", system-ui, sans-serif; color: var(--ink);
+    background: linear-gradient(160deg, var(--header) 0%, #2b2468 55%, var(--bg) 55%);
+    display: grid; place-items: center; padding: 24px 16px;
+  }
+  .card { width: 100%; max-width: 400px; background: #fff; border-radius: 20px; padding: 32px; box-shadow: 0 20px 50px rgba(27,23,64,.25); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; margin-bottom: 24px; }
+  .brand-dot { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--warm), #e85d75); }
+  .brand small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  input { font: inherit; font-size: 14px; color: var(--ink); padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  button { width: 100%; font: inherit; font-weight: 600; padding: 12px; border: 0; border-radius: 10px; background: var(--primary); color: #fff; cursor: pointer; margin-top: 6px; }
+  .error { display: none; background: #fdecea; color: #b3261e; font-size: 13px; padding: 10px 12px; border-radius: 10px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+  <form class="card" method="post" action="/login">
+    <div class="brand"><span class="brand-dot"></span><div>Quirova<small>Quirófano Predictivo</small></div></div>
+    <h1>Iniciar sesión</h1>
+    <p>Ingresa con tu cuenta institucional autorizada.</p>
+    <div class="error" id="error">Correo o contraseña incorrectos.</div>
+    <label>Correo electrónico<input name="email" type="email" autocomplete="username" required autofocus></label>
+    <label>Contraseña<input name="password" type="password" autocomplete="current-password" required></label>
+    <button type="submit">Entrar</button>
+  </form>
+<script>
+  if (new URLSearchParams(location.search).has("error")) document.getElementById("error").style.display = "block";
+</script>
+</body>
+</html>

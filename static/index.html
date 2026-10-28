@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quirova – Quirófano Predictivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f5fb;
+    --surface: #ffffff;
+    --ink: #1b1740;
+    --muted: #615c84;
+    --line: #e4e1f2;
+    --primary: #4b3fd1;
+    --primary-soft: #ecebff;
+    --warm: #f2994a;
+    --header: #1b1740;
+    --ok: #1e8e5a;
+    --ok-soft: #e3f5ec;
+    --warn: #b7791f;
+    --warn-soft: #fdf3e3;
+    --bad: #c0392b;
+    --bad-soft: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Inter", system-ui, sans-serif; color: var(--ink); background: var(--bg); font-size: 14px; }
+  a { color: var(--primary); }
+
+  /* Encabezado con navegación horizontal */
+  header { background: var(--header); color: #fff; }
+  .header-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 28px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; white-space: nowrap; }
+  .brand-dot { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--warm), #e85d75); }
+  .brand small { display: block; font-weight: 400; font-size: 11px; color: #b9b4e0; }
+  nav { display: flex; gap: 4px; overflow-x: auto; flex: 1; }
+  nav a { color: #d4d0f2; text-decoration: none; padding: 8px 12px; border-radius: 999px; font-size: 13px; white-space: nowrap; }
+  nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+  nav a.active { background: #fff; color: var(--ink); font-weight: 600; }
+  .logout { color: #d4d0f2; font-size: 13px; text-decoration: none; border: 1px solid rgba(255,255,255,.25); padding: 7px 12px; border-radius: 999px; white-space: nowrap; }
+  .logout:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+  /* Franja de título */
+  .hero { background: linear-gradient(180deg, var(--header) 0%, #2b2468 100%); color: #fff; padding: 28px 24px 72px; }
+  .hero-inner { max-width: 1160px; margin: 0 auto; }
+  .step { display: inline-block; background: var(--warm); color: var(--ink); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
+  h1 { font-size: 34px; margin: 12px 0 6px; font-weight: 700; letter-spacing: -.02em; }
+  .lead { color: #cfcaf0; max-width: 680px; line-height: 1.5; margin: 0; }
+
+  /* Contenido elevado sobre la franja */
+  .container { max-width: 1160px; margin: -48px auto 48px; padding: 0 24px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .tile {
+    text-align: left; font: inherit; color: inherit; background: var(--surface); border: 2px solid transparent;
+    border-radius: 16px; padding: 18px; cursor: pointer; box-shadow: 0 6px 20px rgba(27,23,64,.08);
+    display: flex; flex-direction: column; gap: 6px; text-decoration: none;
+  }
+  .tile:hover { border-color: var(--primary-soft); }
+  .tile.active { border-color: var(--primary); }
+  .tile-title { font-weight: 600; font-size: 15px; }
+  .tile-desc { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+  .badge { align-self: flex-start; margin-top: 6px; background: var(--primary-soft); color: var(--primary); font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+
+  .panel { background: var(--surface); border-radius: 16px; padding: 22px; box-shadow: 0 6px 20px rgba(27,23,64,.06); margin-bottom: 16px; }
+  .panel h2 { margin: 0 0 6px; font-size: 18px; }
+  .panel > p, .note { color: var(--muted); font-size: 12.5px; line-height: 1.5; margin: 0 0 16px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .empty { background: var(--surface); border-radius: 16px; padding: 32px; text-align: center; color: var(--muted); box-shadow: 0 6px 20px rgba(27,23,64,.06); margin-bottom: 16px; }
+  .disclaimer { background: var(--warn-soft); color: #7a4f12; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; margin-bottom: 16px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 500; color: var(--muted); }
+  label small { font-weight: 400; color: var(--muted); }
+  label.inline { flex-direction: row; align-items: center; gap: 10px; margin-bottom: 16px; }
+  input, select { font: inherit; color: var(--ink); padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .btn { font: inherit; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 10px; cursor: pointer; border: 0; background: var(--primary); color: #fff; text-decoration: none; display: inline-block; }
+  .btn.ghost { background: var(--primary-soft); color: var(--primary); }
+  .btn:disabled { opacity: .45; cursor: default; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  tr.inactive td { color: #a4a0bf; }
+  .row-actions { white-space: nowrap; text-align: right; }
+  .row-actions button { font: inherit; font-size: 12px; border: 0; background: none; color: var(--primary); cursor: pointer; padding: 2px 6px; }
+  .row-actions button.danger { color: var(--bad); }
+
+  /* Inicio */
+  .welcome { display: grid; grid-template-columns: 1fr minmax(0, 320px); gap: 0; padding: 0; overflow: hidden; }
+  .welcome-text { padding: 28px; }
+  .welcome img { width: 100%; height: 100%; min-height: 160px; object-fit: cover; display: block; }
+
+  /* Guía */
+  .progress { display: flex; gap: 6px; margin-bottom: 20px; }
+  .progress button { flex: 1; height: 6px; border: 0; border-radius: 999px; background: var(--line); cursor: pointer; padding: 0; }
+  .progress button.done { background: var(--primary); }
+  .guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 16px 0; }
+  .guide-grid div { background: var(--bg); border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.45; }
+  .guide-grid strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); margin-bottom: 6px; }
+
+  /* IPQ */
+  .ipq-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .segmented { display: inline-flex; background: var(--bg); border-radius: 10px; padding: 3px; }
+  .segmented label { flex-direction: row; cursor: pointer; }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented span { padding: 6px 12px; border-radius: 8px; font-size: 12px; color: var(--muted); }
+  .segmented input:checked + span { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(27,23,64,.12); }
+  .segmented input:focus-visible + span { outline: 2px solid var(--primary); }
+  .score { display: flex; align-items: center; gap: 16px; border-radius: 12px; padding: 14px 16px; margin-top: 16px; }
+  .score b { font-size: 30px; }
+  .score.alto { background: var(--ok-soft); color: var(--ok); }
+  .score.medio { background: var(--warn-soft); color: var(--warn); }
+  .score.bajo { background: var(--bad-soft); color: var(--bad); }
+  .score.info { background: var(--primary-soft); color: var(--primary); }
+
+  /* Simulación */
+  .timeline { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .timeline li { position: relative; padding: 0 0 18px 44px; counter-increment: s; }
+  .timeline li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 12px; display: grid; place-items: center; }
+  .timeline li:not(:last-child)::after { content: ""; position: absolute; left: 13.5px; top: 30px; bottom: 2px; width: 1px; background: var(--line); }
+  .timeline strong { display: block; margin-bottom: 2px; }
+  .timeline span { color: var(--muted); font-size: 13px; }
+  .factors { margin: 12px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .risk-pill { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+  .risk-pill.alto { background: var(--ok-soft); color: var(--ok); }
+  .risk-pill.medio { background: var(--warn-soft); color: var(--warn); }
+  .risk-pill.bajo { background: var(--bad-soft); color: var(--bad); }
+
+  pre.summary { white-space: pre-wrap; background: var(--bg); border-radius: 12px; padding: 16px; font: 13px/1.6 "Inter", system-ui, sans-serif; margin: 16px 0 0; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 0 32px; }
+
+  @media (max-width: 820px) {
+    .welcome { grid-template-columns: 1fr; }
+    .welcome img { min-height: 140px; max-height: 160px; }
+  }
+  @media (max-width: 720px) {
+    .header-inner { flex-wrap: wrap; height: auto; padding: 12px 16px; gap: 10px; }
+    nav { order: 3; width: 100%; flex: none; }
+    .logout { margin-left: auto; }
+    .hero { padding: 24px 16px 64px; }
+    .container { padding: 0 16px; }
+    h1 { font-size: 28px; }
+    label.inline { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand"><span class="brand-dot"></span><div>Quirova<small>Quirófano Predictivo</small></div></div>
+    <nav id="nav"></nav>
+    <a class="logout" href="/logout">Cerrar sesión</a>
+  </div>
+</header>
+<section class="hero"><div class="hero-inner" id="hero"></div></section>
+<main class="container" id="view"></main>
+<footer id="footer"></footer>
+
+<script>
+const PAGES = [
+  { id: "inicio", label: "Inicio", step: "Bienvenida", title: "Inicio",
+    lead: "Organiza la preparación de procedimientos quirúrgicos, revisa información operativa y conoce las herramientas de trazabilidad. Comienza con información institucional autorizada." },
+  { id: "guia", label: "Guía de uso", step: "Recorrido interactivo", title: "Guía de uso",
+    lead: "Avanza a tu ritmo. Cada paso indica qué hacer, qué necesitas y cómo continuar." },
+  { id: "configuracion", label: "Configuración", step: "Primer paso", title: "Configuración",
+    lead: "Abre un formulario vacío. Introduce exclusivamente información institucional autorizada; estos datos se guardan y se mantienen al recargar la página." },
+  { id: "procedimientos", label: "Procedimientos", step: "Programación", title: "Procedimientos",
+    lead: "Registra solo información autorizada y evita datos clínicos sensibles. Las entradas se guardan automáticamente." },
+  { id: "preparacion", label: "Preparación", step: "Verificación operativa", title: "Preparación",
+    lead: "Calcula el Índice de Preparación Quirúrgica (IPQ) y gestiona la memoria del cirujano." },
+  { id: "simulacion", label: "Simulación", step: "Modo Simulación", title: "Simulación",
+    lead: "Consulta una estructura de preparación paso a paso a partir de información introducida por ti. No genera instrucciones clínicas ni pasos quirúrgicos." },
+  { id: "trazabilidad", label: "Trazabilidad", step: "Seguimiento", title: "Trazabilidad",
+    lead: "Abre un módulo y registra únicamente información autorizada. No hay registros previos ni verificaciones automáticas." },
+  { id: "reportes", label: "Reportes", step: "Resumen de la sesión", title: "Reportes",
+    lead: "Genera un resumen solo con la información que introdujiste durante esta sesión. Revísalo antes de utilizarlo; no es un reporte institucional." },
+];
+
+const DISCLAIMER = "Esta es una herramienta de apoyo operativo. No sustituye el criterio clínico ni los protocolos institucionales.";
+
+// Los 7 componentes del Índice de Preparación Quirúrgica
+const IPQ = ["Instrumental", "Insumos", "Dispositivos médicos", "Mantenimiento biomédico", "Esterilización", "Documentación", "Equipo quirúrgico"];
+const IPQ_OPTIONS = [["listo", "Listo"], ["pendiente", "Pendiente"], ["na", "No aplica"]];
+
+const TRAZ_MODULES = [
+  ["Instrumental", "Seguimiento del instrumental utilizado y su estado."],
+  ["Esterilización", "Ciclos y verificaciones de esterilización."],
+  ["Dispositivos médicos", "Dispositivos asociados a cada procedimiento."],
+  ["Mantenimiento biomédico", "Estado de mantenimiento de los equipos."],
+];
+
+const GUIDE = [
+  { title: "1. Configurar institución y quirófanos", page: "configuracion", button: "Abrir Configuración",
+    que: "Abre Configuración y registra tu institución y los quirófanos disponibles.",
+    necesitas: "Nombres institucionales autorizados y datos de identificación de cada quirófano.",
+    sigue: "Continúa con el registro de un procedimiento." },
+  { title: "2. Registrar un procedimiento", page: "procedimientos", button: "Abrir Procedimientos",
+    que: "Abre el formulario de Procedimientos y completa sus campos.",
+    necesitas: "Nombre del procedimiento, quirófano, fecha e identificador de paciente autorizado.",
+    sigue: "Asigna el equipo quirúrgico en el mismo formulario." },
+  { title: "3. Asignar el equipo quirúrgico", page: "procedimientos", button: "Abrir Procedimientos",
+    que: "Indica el equipo responsable al registrar el procedimiento.",
+    necesitas: "Una identificación de equipo aprobada por la institución.",
+    sigue: "Revisa los componentes de preparación." },
+  { title: "4. Revisar la preparación", page: "preparacion", button: "Abrir Preparación",
+    que: "Marca el estado de cada uno de los siete componentes del IPQ.",
+    necesitas: "Verificación autorizada de instrumental, insumos, mantenimiento, esterilización y documentación.",
+    sigue: "Consulta la simulación y el seguimiento disponibles." },
+  { title: "5. Consultar simulación y trazabilidad", page: "simulacion", button: "Abrir Simulación",
+    que: "Consulta el procedimiento registrado y abre las secciones de seguimiento necesarias.",
+    necesitas: "Un procedimiento y, si corresponde, información de seguimiento introducida por personal autorizado.",
+    sigue: "Revisa los datos disponibles antes de generar un reporte." },
+  { title: "6. Generar reportes", page: "reportes", button: "Abrir Reportes",
+    que: "Abre Reportes y genera un resumen de la información introducida en esta sesión.",
+    necesitas: "Un procedimiento registrado y revisión previa de los datos que vas a utilizar.",
+    sigue: "Vuelve al inicio o consulta de nuevo cualquier paso." },
+];
+
+// Los datos se guardan en el servidor (data.json) y sobreviven a recargas y reinicios
+let data = { ipq: {} };
+async function load() {
+  try {
+    const r = await fetch("/api/data", { cache: "no-store" });
+    if (r.status === 401) return location.href = "/login";
+    if (r.ok) data = await r.json();
+  } catch {}
+  data.ipq ||= {};
+}
+let lastSave = Promise.resolve();
+function save() {
+  if (predictions.at) predictions.stale = true;  // los datos cambiaron desde el último cálculo
+  lastSave = fetch("/api/data", { method: "PUT", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+    .then(r => { if (r.status === 401) location.href = "/login"; })
+    .catch(() => {});
+}
+
+// Predicciones del modelo local (model.py); se calculan solo al pulsar el botón
+let predictions = { modelo: null, procedimientos: {}, at: null, stale: false };
+let calculating = false;
+async function runPredictions() {
+  calculating = true; render();
+  try {
+    await lastSave;  // el servidor predice con los datos guardados
+    const r = await fetch("/api/predicciones", { cache: "no-store" });
+    if (r.status === 401) return location.href = "/login";
+    if (r.ok) predictions = { ...(await r.json()), at: new Date().toISOString(), stale: false };
+  } catch {}
+  calculating = false; render();
+}
+function predictButton() {
+  const status = calculating ? "" : !predictions.at ? "Aún no se ha calculado."
+    : `Último cálculo: ${new Date(predictions.at).toLocaleString("es-CO")}${predictions.stale ? " · hay cambios sin recalcular" : ""}`;
+  return `<div class="actions" style="align-items:center"><button class="btn" data-predict ${calculating ? "disabled" : ""}>
+    ${calculating ? "Calculando…" : predictions.at ? "Recalcular predicción" : "Calcular predicción"}</button>
+    <span class="note" style="margin:0">${status}</span></div>`;
+}
+const RISK_CLASS = { Bajo: "alto", Medio: "medio", Alto: "bajo" };  // reutiliza los colores del IPQ
+function predictionHtml(id) {
+  const pr = predictions.procedimientos[id];
+  if (!pr) return predictions.at ? `<div class="score info"><span>Sin predicción para este procedimiento. Pulsa recalcular.</span></div>` : "";
+  const factors = pr.factores.map(f => `<li>${esc(f.factor)}: <b>${f.efecto}</b> el riesgo</li>`).join("");
+  return `<div class="score ${RISK_CLASS[pr.nivel]}"><b>${pr.riesgo}%</b><span>Riesgo ${pr.nivel.toLowerCase()} de retraso<br>
+    Duración estimada: ${pr.duracion} min (referencia ${pr.duracion_base} min)</span></div>
+    ${factors ? `<ul class="factors">${factors}</ul>` : ""}`;
+}
+
+// Estado de la interfaz: se guarda en localStorage para recuperarlo al recargar
+const UI_KEY = "quirova-ui";
+let ui = {};
+try { ui = JSON.parse(localStorage.getItem(UI_KEY)) || {}; } catch {}
+let form = ui.form ?? null;               // { key, editId?, preset?, draft? } formulario abierto
+let guideStep = ui.guideStep ?? 0;
+let selectedProc = ui.selectedProc ?? null; // procedimiento elegido en Preparación / Simulación
+let ipqMessage = "";
+let summary = ui.summary ?? "";
+if (ui.predictions) predictions = ui.predictions;
+function saveUi() {
+  try { localStorage.setItem(UI_KEY, JSON.stringify({ form, guideStep, selectedProc, summary, predictions })); } catch {}
+}
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const list = key => (data[key] ||= []);
+const procLabel = p => `${p.procedimiento} · ${p.fecha}`;
+const findProc = id => list("procedimientos").find(p => p.id === id);
+
+// Colecciones de registros. Cada campo es obligatorio; `options` puede ser una lista o una función.
+const COLLECTIONS = {
+  institucion: { title: "Institución", desc: "Identificación de la clínica u hospital.", button: "Registrar institución", fields: [
+    { name: "identificador", label: "Identificador institucional" },
+    { name: "nombre", label: "Nombre autorizado de la clínica u hospital" } ] },
+  quirofanos: { title: "Quirófanos", desc: "Salas disponibles y su ubicación.", button: "Registrar quirófano", fields: [
+    { name: "nombre", label: "Nombre o código del quirófano" },
+    { name: "ubicacion", label: "Ubicación institucional" } ] },
+  equipos: { title: "Equipos", desc: "Equipos quirúrgicos y sus funciones.", button: "Registrar equipo", fields: [
+    { name: "nombre", label: "Identificación del equipo" },
+    { name: "funciones", label: "Funciones autorizadas" } ] },
+  permisos: { title: "Permisos", desc: "Roles institucionales y lo que pueden hacer.", button: "Registrar permiso",
+    note: "Esta sección documenta permisos durante la sesión; no controla accesos reales.", fields: [
+    { name: "rol", label: "Rol institucional" },
+    { name: "funciones", label: "Funciones permitidas" } ] },
+  procedimientos: { title: "Procedimientos registrados", button: "Registrar procedimiento",
+    note: "Usa solo un identificador permitido por tu institución; no introduzcas historia clínica ni datos sensibles.", fields: [
+    { name: "procedimiento", label: "Procedimiento" },
+    { name: "paciente", label: "Identificador de paciente autorizado" },
+    { name: "quirofano", label: "Quirófano", options: () => list("quirofanos").map(q => q.nombre),
+      emptyHint: "Aún no hay quirófanos en Configuración; escríbelo manualmente." },
+    { name: "fecha", label: "Fecha prevista", type: "date" },
+    { name: "equipo", label: "Equipo quirúrgico", options: () => list("equipos").map(e => e.nombre),
+      emptyHint: "Aún no hay equipos en Configuración; escríbelo manualmente." } ] },
+  preferencias: { title: "Preferencias registradas", button: "Añadir preferencia", toggle: true, fields: [
+    { name: "nombre", label: "Nombre de la preferencia autorizada" },
+    { name: "descripcion", label: "Descripción autorizada" } ] },
+  seguimiento: { title: "Registros de seguimiento", button: "Registrar información", fields: [
+    { name: "modulo", label: "Módulo", options: TRAZ_MODULES.map(m => m[0]) },
+    { name: "procedimiento", label: "Procedimiento",
+      options: () => list("procedimientos").map(p => [p.id, procLabel(p)]),
+      show: id => findProc(id) ? procLabel(findProc(id)) : id,
+      emptyHint: "Aún no hay procedimientos; escribe una referencia." },
+    { name: "referencia", label: "Referencia autorizada" },
+    { name: "descripcion", label: "Descripción o estado verificado" } ] },
+};
+
+function fieldHtml(f, values) {
+  const v = values[f.name] ?? "";
+  const opts = typeof f.options === "function" ? f.options() : f.options;
+  if (opts?.length) {
+    const items = opts.map(o => {
+      const [val, text] = Array.isArray(o) ? o : [o, o];
+      return `<option value="${esc(val)}" ${String(val) === String(v) ? "selected" : ""}>${esc(text)}</option>`;
+    }).join("");
+    return `<label>${f.label} *<select name="${f.name}" required><option value="">Selecciona…</option>${items}</select></label>`;
+  }
+  const hint = opts && f.emptyHint ? `<small>${f.emptyHint}</small>` : "";
+  return `<label>${f.label} *<input name="${f.name}" type="${f.type || "text"}" value="${esc(v)}" required>${hint}</label>`;
+}
+
+function formHtml(key) {
+  if (form?.key !== key) return "";
+  const c = COLLECTIONS[key];
+  const base = form.editId ? list(key).find(r => r.id === form.editId) || {} : form.preset || {};
+  const values = { ...base, ...form.draft };
+  return `<form class="panel" data-collection="${key}">
+    <h2>${form.editId ? "Editar registro" : c.button}</h2>
+    ${c.note ? `<p class="note">${c.note}</p>` : ""}
+    <div class="grid">${c.fields.map(f => fieldHtml(f, values)).join("")}</div>
+    <div class="actions"><button class="btn" type="submit">${form.editId ? "Guardar cambios" : c.button}</button>
+    <button class="btn ghost" type="button" data-cancel>Cancelar</button></div></form>`;
+}
+
+function tableHtml(key, emptyText) {
+  const c = COLLECTIONS[key], rows = list(key);
+  if (!rows.length) return emptyText && form?.key !== key ? `<div class="empty">${emptyText}</div>` : "";
+  const head = c.fields.map(f => `<th>${f.label}</th>`).join("") + (c.toggle ? "<th>Estado</th>" : "") + "<th></th>";
+  const body = rows.map(r => `<tr class="${c.toggle && !r.activa ? "inactive" : ""}">
+    ${c.fields.map(f => `<td>${esc(f.show ? f.show(r[f.name]) : r[f.name])}</td>`).join("")}
+    ${c.toggle ? `<td>${r.activa ? "Activa" : "Inactiva"}</td>` : ""}
+    <td class="row-actions"><button data-edit="${key}:${r.id}">Editar</button>
+    ${c.toggle ? `<button data-toggle="${key}:${r.id}">${r.activa ? "Desactivar" : "Activar"}</button>` : ""}
+    <button class="danger" data-del="${key}:${r.id}">Eliminar</button></td></tr>`).join("");
+  return `<div class="panel"><h2>${c.title}</h2><div class="table-wrap"><table><tr>${head}</tr>${body}</table></div></div>`;
+}
+
+function procSelect() {
+  const procs = list("procedimientos");
+  if (!findProc(selectedProc)) selectedProc = procs[0]?.id || null;
+  return `<label class="inline">Procedimiento <select data-select-proc>${procs.map(p =>
+    `<option value="${p.id}" ${p.id === selectedProc ? "selected" : ""}>${esc(procLabel(p))}</option>`).join("")}</select></label>`;
+}
+
+const NO_PROCS = `<div class="empty">Aún no hay procedimientos registrados. <a href="#procedimientos">Registra un procedimiento</a> para comenzar.</div>`;
+
+// IPQ = componentes listos / componentes que aplican. Requiere responder los 7.
+function ipqScore(id) {
+  const a = data.ipq[id]?.answers || {};
+  if (IPQ.some((_, i) => !a[i])) return null;
+  const applicable = IPQ.filter((_, i) => a[i] !== "na").length;
+  const ready = IPQ.filter((_, i) => a[i] === "listo").length;
+  return applicable ? Math.round(ready / applicable * 100) : 100;
+}
+const ipqLevel = s => s >= 90 ? ["alto", "Preparación alta"] : s >= 70 ? ["medio", "Preparación media"] : ["bajo", "Preparación baja"];
+
+// ---------- Páginas ----------
+
+const VIEWS = {
+  inicio() {
+    const actions = [
+      ["configuracion", "Configurar la institución", "Registra la institución, quirófanos, equipos y permisos."],
+      ["guia", "Consultar la guía de uso", "Orientación operativa paso a paso."],
+      ["procedimientos", "Registrar un procedimiento", "Programa un procedimiento con su quirófano y equipo."],
+    ];
+    return `<div class="panel welcome">
+        <div class="welcome-text"><h2>¿Por dónde empezar?</h2><p>Elige una acción. Todas las secciones comienzan vacías.</p>
+        <div class="disclaimer">${DISCLAIMER}</div></div>
+        <img src="https://images.pexels.com/photos/7108115/pexels-photo-7108115.jpeg?auto=compress&cs=tinysrgb&w=1280" alt="Quirófano estéril con equipamiento e iluminación quirúrgica">
+      </div>
+      <div class="tiles">${actions.map(([page, title, desc]) =>
+        `<a class="tile" href="#${page}"><span class="tile-title">${title}</span><span class="tile-desc">${desc}</span></a>`).join("")}</div>`;
+  },
+
+  guia() {
+    const s = GUIDE[guideStep];
+    return `<div class="panel">
+      <div class="progress">${GUIDE.map((_, i) => `<button data-step="${i}" class="${i <= guideStep ? "done" : ""}" aria-label="Paso ${i + 1}"></button>`).join("")}</div>
+      <h2>${s.title}</h2>
+      <div class="guide-grid">
+        <div><strong>Qué hacer</strong>${s.que}</div>
+        <div><strong>Qué necesitas</strong>${s.necesitas}</div>
+        <div><strong>Cómo continuar</strong>${s.sigue}</div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" data-step="${guideStep - 1}" ${guideStep === 0 ? "disabled" : ""}>Anterior</button>
+        ${guideStep < GUIDE.length - 1 ? `<button class="btn ghost" data-step="${guideStep + 1}">Siguiente</button>` : ""}
+        <a class="btn" href="#${s.page}">${s.button}</a>
+      </div></div>`;
+  },
+
+  configuracion() {
+    const keys = ["institucion", "quirofanos", "equipos", "permisos"];
+    const tiles = keys.map(key => {
+      const c = COLLECTIONS[key], n = list(key).length;
+      return `<button class="tile ${form?.key === key ? "active" : ""}" data-open="${key}">
+        <span class="tile-title">${c.title}</span><span class="tile-desc">${c.desc}</span>
+        <span class="badge">${n ? `${n} registro(s)` : "Sin datos"}</span></button>`;
+    }).join("");
+    const hasData = keys.some(k => list(k).length);
+    return `<div class="tiles">${tiles}</div>
+      ${keys.map(formHtml).join("")}
+      ${!hasData && !form ? `<div class="empty">Aún no hay información institucional registrada. Elige un formulario para comenzar.</div>` : ""}
+      ${keys.map(k => tableHtml(k)).join("")}`;
+  },
+
+  procedimientos() {
+    return `${form?.key === "procedimientos" ? "" : `<div class="panel"><div class="panel-head"><div><h2>Programación</h2>
+      <p>Registra el procedimiento, su quirófano, fecha y equipo quirúrgico.</p></div>
+      <button class="btn" data-open="procedimientos">Abrir formulario de procedimiento</button></div></div>`}
+      ${formHtml("procedimientos")}
+      ${tableHtml("procedimientos", "Aún no hay procedimientos registrados. Registra un procedimiento para comenzar.")}
+      ${list("procedimientos").length ? `<div class="panel"><h2>Predicción de retrasos</h2>
+        <p>Estimación del modelo local. Abre Simulación para ver los factores de cada procedimiento.</p>
+        ${predictButton()}
+        ${predictions.at ? `<div class="table-wrap" style="margin-top:16px"><table><tr><th>Procedimiento</th><th>Riesgo de retraso</th><th>Duración estimada</th></tr>
+        ${list("procedimientos").map(p => { const pr = predictions.procedimientos[p.id];
+          return `<tr><td>${esc(procLabel(p))}</td><td>${pr ? `<span class="risk-pill ${RISK_CLASS[pr.nivel]}">${pr.riesgo}% · ${pr.nivel}</span>` : "Sin calcular"}</td>
+          <td>${pr ? `${pr.duracion} min` : "—"}</td></tr>`; }).join("")}</table></div>` : ""}</div>` : ""}`;
+  },
+
+  preparacion() {
+    let ipq = NO_PROCS;
+    if (list("procedimientos").length) {
+      const select = procSelect();
+      const answers = data.ipq[selectedProc]?.answers || {};
+      const stored = data.ipq[selectedProc]?.score;
+      const rows = IPQ.map((comp, i) => `<div class="ipq-row"><span>${comp}</span><div class="segmented">${IPQ_OPTIONS.map(([val, text]) =>
+        `<label><input type="radio" name="ipq-${i}" value="${val}" data-ipq="${i}" ${answers[i] === val ? "checked" : ""}><span>${text}</span></label>`).join("")}</div></div>`).join("");
+      let result = "";
+      if (stored != null) {
+        const [cls, text] = ipqLevel(stored);
+        result = `<div class="score ${cls}"><b>${stored}%</b><span>${text}</span></div>`;
+      } else if (ipqMessage) {
+        result = `<div class="score info"><span>${ipqMessage}</span></div>`;
+      }
+      ipq = `<div class="panel"><h2>Índice de Preparación Quirúrgica</h2>
+        <p>Selecciona una respuesta para cada componente según información verificada por personal autorizado.</p>
+        ${select}${rows}
+        <div class="actions"><button class="btn" data-ipq-calc>Calcular IPQ</button></div>${result}</div>`;
+    }
+    return `<div class="disclaimer">${DISCLAIMER}</div>${ipq}
+      <div class="panel"><div class="panel-head"><div><h2>Memoria del cirujano</h2>
+      <p>Añade, edita o desactiva preferencias autorizadas. Registra únicamente información con consentimiento y conforme a las normas de privacidad.</p></div>
+      ${form?.key === "preferencias" ? "" : `<button class="btn" data-open="preferencias">Añadir preferencia</button>`}</div></div>
+      ${formHtml("preferencias")}${tableHtml("preferencias")}`;
+  },
+
+  simulacion() {
+    if (!list("procedimientos").length) return NO_PROCS;
+    const select = procSelect();
+    const p = findProc(selectedProc);
+    const q = list("quirofanos").find(x => x.nombre === p.quirofano);
+    const eq = list("equipos").find(x => x.nombre === p.equipo);
+    const score = data.ipq[p.id]?.score;
+    const answers = data.ipq[p.id]?.answers || {};
+    const pending = IPQ.filter((_, i) => answers[i] === "pendiente");
+    const unanswered = IPQ.filter((_, i) => !answers[i]);
+    const prefs = list("preferencias").filter(x => x.activa);
+    const follow = list("seguimiento").filter(x => x.procedimiento === p.id);
+    const steps = [
+      ["Confirmar quirófano", `${p.quirofano}${q ? ` · ${q.ubicacion}` : " · sin datos en Configuración"}`],
+      ["Confirmar equipo quirúrgico", `${p.equipo}${eq ? ` · ${eq.funciones}` : " · sin datos en Configuración"}`],
+      ["Fecha prevista", p.fecha],
+      ["Revisar preparación (IPQ)", score != null ? `${score}% · ${ipqLevel(score)[1]}` : "IPQ sin calcular. Ve a Preparación."],
+      ["Componentes pendientes", pending.length ? pending.join(", ") : unanswered.length ? `Sin evaluar: ${unanswered.join(", ")}` : "Ninguno"],
+      ["Preferencias activas del cirujano", prefs.length ? prefs.map(x => x.nombre).join(", ") : "Sin preferencias registradas"],
+      ["Seguimiento registrado", follow.length ? `${follow.length} registro(s): ${[...new Set(follow.map(x => x.modulo))].join(", ")}` : "Sin registros de seguimiento"],
+    ];
+    return `<div class="disclaimer">${DISCLAIMER}</div><div class="panel"><h2>Consulta guiada</h2>
+      <p>Estructura de preparación construida solo con los datos de esta sesión.</p>${select}
+      <ol class="timeline">${steps.map(([t, d]) => `<li><strong>${t}</strong><span>${esc(d)}</span></li>`).join("")}</ol></div>
+      <div class="panel"><h2>Predicción del modelo</h2>
+      <p>Modelo local${predictions.modelo ? ` · ${predictions.modelo.tipo} · ${predictions.modelo.muestras} casos simulados · exactitud ${predictions.modelo.exactitud}%` : ""}.
+      Usa el IPQ, la trazabilidad y la fecha registrados.</p>${predictButton()}${predictionHtml(p.id)}</div>`;
+  },
+
+  trazabilidad() {
+    const tiles = TRAZ_MODULES.map(([name, desc]) => {
+      const n = list("seguimiento").filter(x => x.modulo === name).length;
+      return `<button class="tile ${form?.preset?.modulo === name ? "active" : ""}" data-open="seguimiento" data-module="${name}">
+        <span class="tile-title">${name}</span><span class="tile-desc">${desc}</span>
+        <span class="badge">${n ? `${n} registro(s)` : "Sin datos"}</span></button>`;
+    }).join("");
+    return `<div class="tiles">${tiles}</div>${formHtml("seguimiento")}
+      ${tableHtml("seguimiento", "Aún no hay registros de seguimiento. Elige un módulo para consultar cómo utilizarlo.")}`;
+  },
+
+  reportes() {
+    const hasProcs = list("procedimientos").length > 0;
+    return `<div class="panel"><div class="panel-head"><div><h2>Resumen de la sesión</h2>
+      <p>${hasProcs ? "El resumen se genera en este navegador con los datos actuales." : "Registra al menos un procedimiento para generar un resumen."}</p></div>
+      <div class="actions" style="margin:0"><button class="btn" data-summary ${hasProcs ? "" : "disabled"}>Generar resumen</button>
+      ${summary ? `<button class="btn ghost" data-copy>Copiar</button>` : ""}</div></div>
+      ${summary ? `<pre class="summary">${esc(summary)}</pre>` : ""}</div>`;
+  },
+};
+
+function buildSummary() {
+  const inst = list("institucion")[0];
+  const lines = [
+    "RESUMEN DE LA SESIÓN — Quirova",
+    `Generado: ${new Date().toLocaleString("es-CO")}`,
+    "",
+    `Institución: ${inst ? `${inst.nombre} (${inst.identificador})` : "No registrada"}`,
+    `Quirófanos: ${list("quirofanos").length} · Equipos: ${list("equipos").length} · Permisos: ${list("permisos").length}`,
+    "",
+    "PROCEDIMIENTOS",
+  ];
+  list("procedimientos").forEach((p, i) => {
+    const s = data.ipq[p.id]?.score;
+    const follow = list("seguimiento").filter(x => x.procedimiento === p.id).length;
+    lines.push(`${i + 1}. ${p.procedimiento} — ${p.fecha}`,
+      `   Quirófano: ${p.quirofano} · Equipo: ${p.equipo} · Paciente: ${p.paciente}`,
+      `   IPQ: ${s != null ? `${s}% (${ipqLevel(s)[1]})` : "sin calcular"} · Seguimiento: ${follow} registro(s)`);
+  });
+  const prefs = list("preferencias").filter(x => x.activa);
+  lines.push("", `Preferencias activas del cirujano: ${prefs.length ? prefs.map(x => x.nombre).join(", ") : "ninguna"}`,
+    "", "Este resumen no es un reporte institucional. Revísalo antes de utilizarlo.");
+  return lines.join("\n");
+}
+
+function render() {
+  const id = location.hash.slice(1) || "inicio";
+  const page = PAGES.find(p => p.id === id) || PAGES[0];
+  document.getElementById("nav").innerHTML = PAGES.map(p =>
+    `<a href="#${p.id}" class="${p.id === page.id ? "active" : ""}">${p.label}</a>`).join("");
+  document.getElementById("hero").innerHTML =
+    `<span class="step">${page.step}</span><h1>${page.title}</h1><p class="lead">${page.lead}</p>`;
+  document.getElementById("view").innerHTML = VIEWS[page.id]();
+  const total = Object.entries(data).filter(([k]) => k !== "ipq").reduce((n, [, l]) => n + l.length, 0);
+  document.getElementById("footer").textContent = `Quirova · ${total} registro(s) guardados`;
+  saveUi();
+}
+
+// ---------- Eventos ----------
+
+const view = document.getElementById("view");
+
+view.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t || t.disabled) return;
+  const d = t.dataset;
+  if (d.open) form = { key: d.open, preset: d.module ? { modulo: d.module } : {} };
+  else if ("cancel" in d) form = null;
+  else if (d.step) guideStep = Number(d.step);
+  else if (d.edit) { const [key, id] = d.edit.split(":"); form = { key, editId: id }; }
+  else if (d.toggle) {
+    const [key, id] = d.toggle.split(":");
+    const r = list(key).find(x => x.id === id); r.activa = !r.activa; save();
+  } else if (d.del) {
+    const [key, id] = d.del.split(":");
+    data[key] = list(key).filter(x => x.id !== id);
+    if (key === "procedimientos") delete data.ipq[id];
+    if (form?.editId === id) form = null;
+    save();
+  } else if ("ipqCalc" in d) {
+    const s = ipqScore(selectedProc);
+    if (s == null) ipqMessage = "Responde los siete componentes para calcular el IPQ.";
+    else { (data.ipq[selectedProc] ||= {}).score = s; save(); }
+  } else if ("predict" in d) return runPredictions();
+  else if ("summary" in d) summary = buildSummary();
+  else if ("copy" in d) { navigator.clipboard?.writeText(summary); t.textContent = "Copiado"; return; }
+  else return;
+  render();
+});
+
+view.addEventListener("change", e => {
+  const t = e.target;
+  if ("selectProc" in t.dataset) { selectedProc = t.value; ipqMessage = ""; }
+  else if (t.dataset.ipq) {
+    const entry = (data.ipq[selectedProc] ||= {});
+    (entry.answers ||= {})[t.dataset.ipq] = t.value;
+    delete entry.score; ipqMessage = ""; save();
+  } else return;
+  render();
+});
+
+view.addEventListener("submit", e => {
+  e.preventDefault();
+  const key = e.target.dataset.collection;
+  const values = Object.fromEntries([...new FormData(e.target)].map(([k, v]) => [k, v.trim()]));
+  if (form.editId) Object.assign(list(key).find(r => r.id === form.editId), values);
+  else list(key).push({ id: uid(), ...values, ...(COLLECTIONS[key].toggle ? { activa: true } : {}) });
+  save(); form = null; summary = ""; render();
+});
+
+// Guarda lo que se escribe en un formulario abierto para no perderlo al re-renderizar o recargar
+view.addEventListener("input", e => {
+  const t = e.target;
+  if (!form || !t.form?.dataset.collection || !t.name) return;
+  (form.draft ||= {})[t.name] = t.value;
+  saveUi();
+});
+
+window.addEventListener("hashchange", () => { form = null; ipqMessage = ""; render(); window.scrollTo(0, 0); });
+load().then(render);
+</script>
+</body>
+</html>
