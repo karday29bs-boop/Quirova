@@ -1,4 +1,4 @@
-"""Lógica del servidor de Cirvia.
+"""Lógica del servidor de Cirvia como aplicación WSGI (`app`).
 
 La usan tanto `app.py` (servidor local) como `api/index.py` (función de Vercel).
 No guarda nada en disco: los datos viven en el navegador de cada usuario y la
@@ -11,7 +11,6 @@ import os
 import secrets
 import time
 from http.cookies import SimpleCookie
-from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs
 
@@ -24,13 +23,15 @@ SEED_FILE = BASE_DIR / "seed_data.json"
 USER_EMAIL = "pruebaQuirofano@correo.com"
 USER_PASSWORD = "quirofano123"
 
-# En Vercel define CIRVIA_SECRET; sin ella cualquiera que lea el código podría falsificar sesiones
+
 SECRET = os.environ.get("CIRVIA_SECRET", "cirvia-clave-de-desarrollo").encode()
 SESSION_SECONDS = 30 * 24 * 3600
 MAX_BODY = 2 * 1024 * 1024
 
-# El modelo predictivo se entrena una vez al cargar el módulo
+
 MODEL = DelayModel()
+
+STATUS = {200: "200 OK", 303: "303 See Other", 400: "400 Bad Request", 401: "401 Unauthorized", 404: "404 Not Found"}
 
 
 def sign(expires):
@@ -50,85 +51,100 @@ def valid_session(token):
         return False
 
 
-class Handler(BaseHTTPRequestHandler):
-    def logged_in(self):
-        cookie = SimpleCookie(self.headers.get("Cookie", ""))
-        return "session" in cookie and valid_session(cookie["session"].value)
+class Request:
+    def __init__(self, environ):
+        self.environ = environ
+        self.method = environ.get("REQUEST_METHOD", "GET")
+        self.path = environ.get("PATH_INFO") or "/"
+        cookie = SimpleCookie(environ.get("HTTP_COOKIE", ""))
+        self.logged_in = "session" in cookie and valid_session(cookie["session"].value)
+        self.https = (environ.get("HTTP_X_FORWARDED_PROTO") or environ.get("wsgi.url_scheme")) == "https"
 
-    def cookie(self, value, max_age):
-        secure = "; Secure" if self.headers.get("X-Forwarded-Proto") == "https" else ""
-        return f"session={value}; Path=/; HttpOnly; SameSite=Lax; Max-Age={max_age}{secure}"
-
-    def redirect(self, location, cookie=None):
-        self.send_response(303)
-        self.send_header("Location", location)
-        if cookie:
-            self.send_header("Set-Cookie", cookie)
-        self.end_headers()
-
-    def send_body(self, body, content_type):
-        self.send_response(200)
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
-        self.end_headers()
-        self.wfile.write(body)
-
-    def send_json(self, value):
-        self.send_body(json.dumps(value, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
-
-    def send_page(self, name):
-        self.send_body((TEMPLATES_DIR / name).read_bytes(), "text/html; charset=utf-8")
-
-    def read_body(self):
-        length = int(self.headers.get("Content-Length", 0))
+    def body(self):
+        length = int(self.environ.get("CONTENT_LENGTH") or 0)
         if length > MAX_BODY:
             raise ValueError("cuerpo demasiado grande")
-        return self.rfile.read(length)
+        return self.environ["wsgi.input"].read(length) if length else b""
 
-    def do_GET(self):
-        path = self.path.split("?")[0]
-        logged_in = self.logged_in()
+    def cookie(self, value, max_age):
+        secure = "; Secure" if self.https else ""
+        return f"session={value}; Path=/; HttpOnly; SameSite=Lax; Max-Age={max_age}{secure}"
 
-        if path == "/api/seed":
-            if not logged_in:
-                return self.send_error(401)
-            return self.send_json(json.loads(SEED_FILE.read_text(encoding="utf-8")))
-        if path == "/logout":
-            return self.redirect("/login", self.cookie("", 0))
-        if path == "/login":
-            return self.redirect("/") if logged_in else self.send_page("login.html")
-        if path in ("/", "/index.html"):
-            return self.send_page("index.html") if logged_in else self.redirect("/login")
-        self.send_error(404)
 
-    def do_POST(self):
-        path = self.path.split("?")[0]
-        if path == "/login":
-            return self.login()
-        if path == "/api/predicciones":
-            if not self.logged_in():
-                return self.send_error(401)
-            # El navegador envía sus datos; el servidor solo calcula y no guarda nada
-            try:
-                data = json.loads(self.read_body())
-            except ValueError:
-                return self.send_error(400)
-            if not isinstance(data, dict):
-                return self.send_error(400)
-            return self.send_json({"modelo": MODEL.info, "procedimientos": predict_all(MODEL, data)})
-        self.send_error(404)
 
-    def login(self):
-        try:
-            form = parse_qs(self.read_body().decode("utf-8"))
-        except ValueError:
-            return self.send_error(400)
-        email = form.get("email", [""])[0].strip()
-        password = form.get("password", [""])[0]
+def redirect(location, cookie=None):
+    headers = [("Location", location)]
+    if cookie:
+        headers.append(("Set-Cookie", cookie))
+    return 303, headers, b""
 
-        valid_email = email.lower() == USER_EMAIL.lower()
-        valid_password = secrets.compare_digest(password.encode(), USER_PASSWORD.encode())
-        if valid_email and valid_password:
-            return self.redirect("/", self.cookie(new_session(), SESSION_SECONDS))
-        self.redirect("/login?error=1")
+
+def body_response(body, content_type):
+    return 200, [("Content-Type", content_type), ("Cache-Control", "no-store")], body
+
+
+def json_response(value):
+    return body_response(json.dumps(value, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
+
+
+def page(name):
+    return body_response((TEMPLATES_DIR / name).read_bytes(), "text/html; charset=utf-8")
+
+
+def error(code):
+    return code, [("Content-Type", "text/plain; charset=utf-8")], STATUS[code].encode()
+
+
+def login(req):
+    try:
+        form = parse_qs(req.body().decode("utf-8"))
+    except ValueError:
+        return error(400)
+    email = form.get("email", [""])[0].strip()
+    password = form.get("password", [""])[0]
+
+    valid_email = email.lower() == USER_EMAIL.lower()
+    valid_password = secrets.compare_digest(password.encode(), USER_PASSWORD.encode())
+    if valid_email and valid_password:
+        return redirect("/", req.cookie(new_session(), SESSION_SECONDS))
+    return redirect("/login?error=1")
+
+
+def predictions(req):
+    if not req.logged_in:
+        return error(401)
+    
+    try:
+        data = json.loads(req.body())
+    except ValueError:
+        return error(400)
+    if not isinstance(data, dict):
+        return error(400)
+    return json_response({"modelo": MODEL.info, "procedimientos": predict_all(MODEL, data)})
+
+
+def route(req):
+    if req.method == "POST":
+        if req.path == "/login":
+            return login(req)
+        if req.path == "/api/predicciones":
+            return predictions(req)
+        return error(404)
+
+    if req.path == "/api/seed":
+        if not req.logged_in:
+            return error(401)
+        return json_response(json.loads(SEED_FILE.read_text(encoding="utf-8")))
+    if req.path == "/logout":
+        return redirect("/login", req.cookie("", 0))
+    if req.path == "/login":
+        return redirect("/") if req.logged_in else page("login.html")
+    if req.path in ("/", "/index.html"):
+        return page("index.html") if req.logged_in else redirect("/login")
+    return error(404)
+
+
+def app(environ, start_response):
+    code, headers, body = route(Request(environ))
+    start_response(STATUS[code], headers + [("Content-Length", str(len(body)))])
+    return [body]
