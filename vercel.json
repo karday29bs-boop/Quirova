@@ -1,8 +1,10 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
-  "functions": {
-    "api/index.py": {
-      "includeFiles": "{server.py,model.py,seed_data.json,templates/**}"
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python",
+      "config": { "includeFiles": ["server.py", "model.py", "seed_data.json", "templates/**"] }
     }
-  }
+  ],
+  "routes": [{ "src": "/(.*)", "dest": "/api/index.py" }]
 }
