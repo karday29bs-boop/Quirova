@@ -1,6 +1,6 @@
 {
   "institucion": [
-    { "id": "inst1", "identificador": "NIT 900123456-7", "nombre": "Clínica Demo Quirova" }
+    { "id": "inst1", "identificador": "NIT 900123456-7", "nombre": "Clínica Demo Cirvia" }
   ],
   "quirofanos": [
     { "id": "q1", "nombre": "Q-01", "ubicacion": "Torre A · Piso 3" },

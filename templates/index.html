@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quirova – Quirófano Predictivo</title>
+<title>Cirvia – Quirófano Predictivo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -152,7 +152,7 @@
 <body>
 <header>
   <div class="header-inner">
-    <div class="brand"><span class="brand-dot"></span><div>Quirova<small>Quirófano Predictivo</small></div></div>
+    <div class="brand"><span class="brand-dot"></span><div>Cirvia<small>Quirófano Predictivo</small></div></div>
     <nav id="nav"></nav>
     <a class="logout" href="/logout">Cerrar sesión</a>
   </div>
@@ -222,7 +222,7 @@ const GUIDE = [
 ];
 
 // Los datos se guardan en el navegador (localStorage); la primera vez se cargan los datos de prueba
-const DATA_KEY = "quirova-data";
+const DATA_KEY = "cirvia-data";
 let data = { ipq: {} };
 async function load() {
   let stored = null;
@@ -274,7 +274,7 @@ function predictionHtml(id) {
 }
 
 // Estado de la interfaz: se guarda en localStorage para recuperarlo al recargar
-const UI_KEY = "quirova-ui";
+const UI_KEY = "cirvia-ui";
 let ui = {};
 try { ui = JSON.parse(localStorage.getItem(UI_KEY)) || {}; } catch {}
 let form = ui.form ?? null;               // { key, editId?, preset?, draft? } formulario abierto
@@ -534,7 +534,7 @@ const VIEWS = {
 function buildSummary() {
   const inst = list("institucion")[0];
   const lines = [
-    "RESUMEN DE LA SESIÓN — Quirova",
+    "RESUMEN DE LA SESIÓN — Cirvia",
     `Generado: ${new Date().toLocaleString("es-CO")}`,
     "",
     `Institución: ${inst ? `${inst.nombre} (${inst.identificador})` : "No registrada"}`,
@@ -564,7 +564,7 @@ function render() {
     `<span class="step">${page.step}</span><h1>${page.title}</h1><p class="lead">${page.lead}</p>`;
   document.getElementById("view").innerHTML = VIEWS[page.id]();
   const total = Object.entries(data).filter(([k]) => k !== "ipq").reduce((n, [, l]) => n + l.length, 0);
-  document.getElementById("footer").textContent = `Quirova · ${total} registro(s) guardados`;
+  document.getElementById("footer").textContent = `Cirvia · ${total} registro(s) guardados`;
   saveUi();
 }
 

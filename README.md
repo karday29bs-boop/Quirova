@@ -1,4 +1,4 @@
-# Quirova – Quirófano Predictivo
+# Cirvia – Quirófano Predictivo
 
 Plataforma web sencilla para organizar la preparación de procedimientos quirúrgicos y estimar su riesgo de retraso con un modelo predictivo local.
 
@@ -119,7 +119,7 @@ El proyecto está listo para Vercel: todas las rutas pasan por la función `api/
 
 1. Sube el proyecto a GitHub.
 2. En [vercel.com](https://vercel.com), elige *Add New → Project* e importa el repositorio. Deja *Framework Preset* en **Other**.
-3. Antes de desplegar, en *Environment Variables* agrega `QUIROVA_SECRET` con un valor largo y aleatorio. Puedes generarlo con:
+3. Antes de desplegar, en *Environment Variables* agrega `CIRVIA_SECRET` con un valor largo y aleatorio. Puedes generarlo con:
    ```bash
    python3 -c "import secrets; print(secrets.token_urlsafe(32))"
    ```

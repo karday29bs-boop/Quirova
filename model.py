@@ -1,4 +1,4 @@
-"""Modelo predictivo local de Quirova.
+"""Modelo predictivo local de Cirvia.
 
 Estima el riesgo de retraso de cada procedimiento con una regresión logística
 escrita en Python puro (sin librerías externas). Se entrena al iniciar el

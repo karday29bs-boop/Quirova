@@ -1,4 +1,4 @@
-"""Lógica del servidor de Quirova.
+"""Lógica del servidor de Cirvia.
 
 La usan tanto `app.py` (servidor local) como `api/index.py` (función de Vercel).
 No guarda nada en disco: los datos viven en el navegador de cada usuario y la
@@ -24,8 +24,8 @@ SEED_FILE = BASE_DIR / "seed_data.json"
 USER_EMAIL = "pruebaQuirofano@correo.com"
 USER_PASSWORD = "quirofano123"
 
-# En Vercel define QUIROVA_SECRET; sin ella cualquiera que lea el código podría falsificar sesiones
-SECRET = os.environ.get("QUIROVA_SECRET", "quirova-clave-de-desarrollo").encode()
+# En Vercel define CIRVIA_SECRET; sin ella cualquiera que lea el código podría falsificar sesiones
+SECRET = os.environ.get("CIRVIA_SECRET", "cirvia-clave-de-desarrollo").encode()
 SESSION_SECONDS = 30 * 24 * 3600
 MAX_BODY = 2 * 1024 * 1024
 
